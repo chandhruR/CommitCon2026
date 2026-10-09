@@ -3,125 +3,232 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ARES-V : 3D Deep Space Mission Control</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Lost in Space: Rover Mission Control</title>
+    <meta name="description" content="An autonomous rover explores an unknown planet on a limited battery, uplinks its science from relay zones and gets home before the power runs out.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- Three.js Canvas Container -->
-    <div id="canvas-container"></div>
-    
-    <!-- 3D HUD Overlay -->
-    <div class="hud-container">
-        <!-- Top Telemetry Header -->
-        <header>
-            <div class="brand">
-                <div class="pulse-indicator"></div>
-                <div>
-                    <h1>ARES-V 3D SPACE COMMAND</h1>
-                    <span class="sub-brand">ZERO-G ASTEROID FIELD SURVEY & PROBE OPS</span>
-                </div>
-            </div>
+<div class="app">
+    <main class="stage">
+        <div id="view3d" class="view3d" aria-label="3D view of the planet surface"></div>
 
-            <div class="status-bar">
-                <div class="stat-box">
-                    <span class="label">THRUSTER FUEL</span>
-                    <div class="progress-bar"><div id="energy-fill" class="progress-fill" style="width: 100%;"></div></div>
-                    <span id="energy-val" class="val">1800 J</span>
+        <header class="topbar">
+            <div class="wordmark">
+                <span class="wordmark-title">Lost in Space</span>
+                <span class="wordmark-sub">Rover mission control</span>
+            </div>
+            <div class="controls">
+                <label class="field">
+                    <span>Scenario</span>
+                    <select id="scenario"></select>
+                </label>
+                <div class="segmented" role="radiogroup" aria-label="Rover brain">
+                    <button type="button" role="radio" data-strategy="smart" aria-checked="true">Smart planner</button>
+                    <button type="button" role="radio" data-strategy="greedy" aria-checked="false">Greedy baseline</button>
                 </div>
-                <div class="stat-box">
-                    <span class="label">MISSION YIELD</span>
-                    <span id="score-val" class="val highlight">0 PTS</span>
+                <div class="run">
+                    <button type="button" id="btn-play" class="primary">Launch</button>
+                    <button type="button" id="btn-step" title="Advance one tick (N)">Step</button>
+                    <button type="button" id="btn-reset" title="Restart this map">Restart</button>
+                    <button type="button" id="btn-newmap" title="Same scenario, new random map">New map</button>
                 </div>
-                <div class="stat-box">
-                    <span class="label">CRYSTAL CARGO</span>
-                    <span id="cargo-val" class="val">0 UNIT(S)</span>
-                </div>
-                <div class="stat-box">
-                    <span class="label">PROBE STATE</span>
-                    <span id="state-badge" class="state-badge state-idle">STANDBY</span>
-                </div>
+                <label class="field speed">
+                    <span>Speed</span>
+                    <input type="range" id="speed" min="1" max="60" value="10" aria-label="Ticks per second">
+                </label>
             </div>
         </header>
 
-        <!-- Live Decision Overlay HUD -->
-        <div class="live-decision-hud">
-            <div class="hud-label">ZERO-G AI PLANNER RATIONALE:</div>
-            <div id="decision-text" class="hud-value">Calibrating thrusters and zero-g space radar...</div>
+        <div class="hud-bottom">
+        <section class="decision" aria-live="polite">
+            <div class="decision-head">
+                <span id="status-chip" class="chip" data-kind="idle">Waiting on the lander</span>
+                <span id="tick" class="tick">Tick 0</span>
+            </div>
+            <p id="reason" class="reason">Press Launch. The rover knows nothing about this planet yet.</p>
+            <table class="options" id="options" aria-label="Options the planner considered">
+                <thead><tr><th scope="col">Option the planner weighed</th><th scope="col">Science</th><th scope="col">Energy</th><th scope="col">Score</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </section>
+
+        <section class="tools" aria-label="Make the planet harder">
+            <span class="tools-label">Make it harder</span>
+            <div class="tool-buttons">
+                <button type="button" data-tool="slide" title="Click the terrain to drop a rockslide (1)">Rockslide</button>
+                <button type="button" data-tool="storm" title="Click the terrain to start a dust storm (2)">Dust storm</button>
+                <button type="button" data-tool="outage" title="Click near a relay tower to knock it offline (3)">Relay outage</button>
+            </div>
+            <label class="field compact">
+                <span>Random events</span>
+                <select id="chaos">
+                    <option value="off">Off</option>
+                    <option value="normal" selected>Normal</option>
+                    <option value="intense">Intense</option>
+                </select>
+            </label>
+            <label class="toggle"><input type="checkbox" id="reveal"> Reveal the whole map</label>
+            <label class="toggle"><input type="checkbox" id="follow" checked> Follow rover</label>
+        </section>
         </div>
 
-        <div id="overlay" class="overlay hidden">
-            <h2 id="overlay-title">MISSION COMPLETED</h2>
-            <p id="overlay-msg">Safely returned to base.</p>
-            <button id="btn-restart">RELAUNCH SPACE PROBE</button>
-        </div>
-        
-        <!-- Side Command & Telemetry Rack -->
-        <aside class="controls">
-            <!-- Real-time Mission Analytics Panel -->
-            <div class="telemetry-panel">
-                <h3>DEEP SPACE ANALYTICS</h3>
-                <div class="metrics-grid">
-                    <div class="metric-card">
-                        <span class="m-label">SECTORS SURVEYED</span>
-                        <span id="explored-pct" class="m-val">0.0%</span>
-                    </div>
-                    <div class="metric-card">
-                        <span class="m-label">SPACE DISTANCE</span>
-                        <span id="dist-val" class="m-val">0 km</span>
-                    </div>
-                </div>
-                <div class="status-rows">
-                    <div class="row">
-                        <span class="r-label">Space Hazard:</span>
-                        <span id="terrain-name" class="r-val">Void Space</span>
-                    </div>
-                    <div class="row">
-                        <span class="r-label">Cosmic Radiation:</span>
-                        <span id="weather-alert" class="r-val safe">STABLE</span>
-                    </div>
-                </div>
-            </div>
+        <div id="toast" class="toast" role="status" hidden></div>
+    </main>
 
-            <!-- Mission Logs -->
-            <div class="logs-section">
-                <h3>TELEMETRY EVENT LOGS</h3>
-                <div id="logs" class="logs-container"></div>
+    <aside class="rail">
+        <section class="battery" aria-label="Battery">
+            <div class="readout">
+                <span class="readout-label">Battery</span>
+                <span class="readout-value"><span id="energy">380</span><small> Wh</small></span>
             </div>
-            
-            <!-- Operator Controls -->
-            <div class="actions">
-                <button id="btn-start" class="primary-btn">LAUNCH SPACE PROBE</button>
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <label>Thruster Acceleration Rate</label>
-                    </div>
-                    <input type="range" id="speed-slider" min="1" max="60" value="12">
-                </div>
-                <div class="slider-group">
-                    <div class="slider-header">
-                        <label>3D Camera Viewpoint</label>
-                    </div>
-                    <select id="camera-select" class="hud-select">
-                        <option value="orbital">3D Free Space Orbit</option>
-                        <option value="isometric">3D Probe Tracking</option>
-                        <option value="rover">Space Probe Cockpit POV</option>
-                    </select>
-                </div>
+            <div class="energy-bar" id="energy-bar" role="img" aria-label="Battery level and energy needed to get home">
+                <div class="energy-fill" id="energy-fill"></div>
+                <div class="energy-need" id="energy-need"><span>Home</span></div>
             </div>
-        </aside>
+            <p class="margin" id="margin">Safe margin: 380 Wh beyond what it takes to get home.</p>
+        </section>
+
+        <section class="science" aria-label="Science">
+            <div class="readout">
+                <span class="readout-label">Science returned</span>
+                <span class="readout-value teal" id="science">0</span>
+            </div>
+            <div class="readout secondary">
+                <span class="readout-label">On board, not yet sent</span>
+                <span class="readout-value ochre" id="carried">0</span>
+            </div>
+            <div class="storage">
+                <span>Storage</span>
+                <div class="storage-bar"><div id="storage-fill"></div></div>
+                <span id="storage">0 / 80 MB</span>
+            </div>
+            <dl class="facts">
+                <div><dt>Explored</dt><dd id="explored">0%</dd></div>
+                <div><dt>Driven</dt><dd id="distance">0 km</dd></div>
+                <div><dt>Replans</dt><dd id="replans">0</dd></div>
+                <div><dt>Routes blocked</dt><dd id="blocked">0</dd></div>
+            </dl>
+        </section>
+
+        <section class="map-section" aria-label="What the rover knows">
+            <h2>What the rover knows</h2>
+            <div class="map-wrap">
+                <canvas id="map2d" width="352" height="352" aria-label="Map of the explored terrain"></canvas>
+                <div id="map-tip" class="map-tip" hidden></div>
+            </div>
+            <ul class="legend">
+                <li><i class="lg lander"></i>Lander</li>
+                <li><i class="lg rover"></i>Rover</li>
+                <li><i class="lg relay"></i>Relay zone</li>
+                <li><i class="lg sample"></i>Sample, bigger is worth more</li>
+                <li><i class="lg storm"></i>Dust storm</li>
+                <li><i class="lg unknown"></i>Unexplored</li>
+            </ul>
+        </section>
+
+        <section class="charts" aria-label="Telemetry">
+            <h2>Energy</h2>
+            <div class="chart" id="chart-energy"></div>
+            <h2>Science</h2>
+            <div class="chart" id="chart-science"></div>
+        </section>
+
+        <section class="log-section" aria-label="Mission log">
+            <h2>Mission log</h2>
+            <ol id="log" class="log"></ol>
+        </section>
+
+        <section class="bench-cta">
+            <p>Is the planner actually smart? Race it against a greedy rover on dozens of maps.</p>
+            <button type="button" id="btn-bench">Run the benchmark</button>
+        </section>
+    </aside>
+</div>
+
+<dialog id="intro" class="sheet intro">
+    <h1>Lost in Space</h1>
+    <p class="lede">A rover has just landed on a planet nobody has mapped. It has 380 Wh of battery, 80 MB of storage and one job: bring back as much science as it can, then get home before the power runs out.</p>
+    <ul class="rules">
+        <li><strong>It starts blind.</strong> The mast camera sees about 60 m, and hills block the view.</li>
+        <li><strong>Data only counts once it's sent.</strong> Samples have to be uplinked from a relay zone. Anything still on board is lost if the rover strands.</li>
+        <li><strong>The planet fights back.</strong> Rockslides bury known routes, dust storms roll in and relays drop offline. You can trigger them yourself.</li>
+    </ul>
+    <p class="hint">Space plays and pauses. N steps one tick. Keys 1, 2 and 3 pick a hazard to drop.</p>
+    <form method="dialog" class="sheet-actions">
+        <button class="primary" value="launch">Launch mission</button>
+        <button value="look">Look around first</button>
+    </form>
+</dialog>
+
+<dialog id="report" class="sheet report">
+    <h1 id="report-title">Mission complete</h1>
+    <p id="report-lede" class="lede"></p>
+    <div class="report-grid">
+        <section>
+            <h2>Where the energy went</h2>
+            <div id="report-energy" class="bars"></div>
+        </section>
+        <section>
+            <h2>Science by sample</h2>
+            <table id="report-science" class="data"></table>
+        </section>
+        <section>
+            <h2>Handling surprises</h2>
+            <dl id="report-adapt" class="facts"></dl>
+        </section>
+        <section>
+            <h2>Same map, other brain</h2>
+            <div id="report-compare"><p class="muted">Runs the other planner on this exact map.</p></div>
+            <button type="button" id="btn-compare">Compare</button>
+        </section>
     </div>
+    <section class="history">
+        <h2>Missions flown</h2>
+        <p id="report-history" class="muted"></p>
+    </section>
+    <form method="dialog" class="sheet-actions">
+        <button class="primary" value="again">Fly this map again</button>
+        <button value="new">New map</button>
+        <button value="close">Close</button>
+    </form>
+</dialog>
 
-    <!-- Import Three.js and our main script -->
-    <script type="importmap">
-      {
-        "imports": {
-          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
-          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
-        }
-      }
-    </script>
-    <script type="module" src="main.js"></script>
+<dialog id="bench" class="sheet bench">
+    <h1>Smart planner vs greedy baseline</h1>
+    <p class="lede">Both rovers get the same maps, the same sensors and the same pathfinding. Only the decision-making differs. The greedy rover always goes for the nearest sample, explores the nearest unknown ground, uplinks only when storage is full and heads home with a fixed 20 Wh margin.</p>
+    <div class="bench-run">
+        <label class="field compact"><span>Maps per scenario</span>
+            <select id="bench-seeds"><option>4</option><option selected>8</option><option>16</option></select>
+        </label>
+        <button type="button" id="btn-bench-run" class="primary">Run</button>
+        <progress id="bench-progress" max="1" value="0" hidden></progress>
+        <span id="bench-status" class="muted"></span>
+    </div>
+    <div id="bench-summary" class="bench-summary"></div>
+    <div class="bench-charts">
+        <section><h2>Science returned per mission</h2><div class="chart" id="chart-bench-science"></div></section>
+        <section><h2>Missions that made it home</h2><div class="chart" id="chart-bench-success"></div></section>
+    </div>
+    <details class="bench-table">
+        <summary>Show every mission</summary>
+        <table class="data" id="bench-table"></table>
+    </details>
+    <form method="dialog" class="sheet-actions">
+        <button value="close">Close</button>
+    </form>
+</dialog>
+
+<script type="importmap">
+{
+    "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>
-
