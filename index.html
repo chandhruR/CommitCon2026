@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARES-V : 3D Rover Mission Control</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+    
+    <!-- 3D HUD Overlay -->
+    <div class="hud-container">
+        <!-- Top Telemetry Header -->
+        <header>
+            <div class="brand">
+                <div class="pulse-indicator"></div>
+                <div>
+                    <h1>ARES-V 3D COMMAND</h1>
+                    <span class="sub-brand">ORBITAL TRACKING & SURFACE OPS</span>
+                </div>
+            </div>
+
+            <div class="status-bar">
+                <div class="stat-box">
+                    <span class="label">ENERGY CORE</span>
+                    <div class="progress-bar"><div id="energy-fill" class="progress-fill" style="width: 100%;"></div></div>
+                    <span id="energy-val" class="val">1800 J</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">MISSION YIELD</span>
+                    <span id="score-val" class="val highlight">0 PTS</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">CARGO MASS</span>
+                    <span id="cargo-val" class="val">0</span>
+                </div>
+                <div class="stat-box">
+                    <span class="label">SYSTEM STATE</span>
+                    <span id="state-badge" class="state-badge state-idle">STANDBY</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Live Decision Overlay HUD -->
+        <div class="live-decision-hud">
+            <div class="hud-label">AI PLANNER RATIONALE:</div>
+            <div id="decision-text" class="hud-value">Calibrating sensors at landing site...</div>
+        </div>
+
+        <div id="overlay" class="overlay hidden">
+            <h2 id="overlay-title">MISSION COMPLETED</h2>
+            <p id="overlay-msg">Safely returned to base.</p>
+            <button id="btn-restart">RELAUNCH 3D MISSION</button>
+        </div>
+        
+        <!-- Side Command & Telemetry Rack -->
+        <aside class="controls">
+            <!-- Real-time Mission Analytics Panel -->
+            <div class="telemetry-panel">
+                <h3>SURFACE ANALYTICS</h3>
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <span class="m-label">EXPLORED</span>
+                        <span id="explored-pct" class="m-val">0.0%</span>
+                    </div>
+                    <div class="metric-card">
+                        <span class="m-label">TRAVELED</span>
+                        <span id="dist-val" class="m-val">0 m</span>
+                    </div>
+                </div>
+                <div class="status-rows">
+                    <div class="row">
+                        <span class="r-label">Terrain Friction:</span>
+                        <span id="terrain-name" class="r-val">Nominal</span>
+                    </div>
+                    <div class="row">
+                        <span class="r-label">Atmosphere:</span>
+                        <span id="weather-alert" class="r-val safe">STABLE</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mission Logs -->
+            <div class="logs-section">
+                <h3>SYSTEM EVENT LOGS</h3>
+                <div id="logs" class="logs-container"></div>
+            </div>
+            
+            <!-- Operator Controls -->
+            <div class="actions">
+                <button id="btn-start" class="primary-btn">LAUNCH ROVER</button>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Simulation Clock Rate</label>
+                    </div>
+                    <input type="range" id="speed-slider" min="1" max="60" value="12">
+                </div>
+                <div class="slider-group">
+                    <div class="slider-header">
+                        <label>Camera View</label>
+                    </div>
+                    <select id="camera-select" class="hud-select">
+                        <option value="orbital">Orbital (Top-Down)</option>
+                        <option value="isometric">Isometric Tracking</option>
+                        <option value="rover">Rover POV</option>
+                    </select>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Import Three.js and our main script -->
+    <!-- We'll use ES modules for Three.js -->
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+          "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+      }
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+</html>

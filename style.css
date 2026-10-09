@@ -1,0 +1,260 @@
+:root {
+    --bg-dark: #000;
+    --glass-bg: rgba(10, 15, 28, 0.65);
+    --glass-border: rgba(0, 240, 255, 0.2);
+    --accent: #00F0FF;
+    --accent-glow: 0 0 12px rgba(0, 240, 255, 0.8);
+    --text-main: #F1F5F9;
+    --text-muted: #94A3B8;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-main);
+    font-family: 'Inter', sans-serif;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+#canvas-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1;
+}
+
+.hud-container {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    z-index: 10;
+    pointer-events: none; /* Let clicks pass through to 3D canvas by default */
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+}
+
+header {
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    pointer-events: auto;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pulse-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: var(--accent-glow);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.5; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    text-shadow: var(--accent-glow);
+}
+
+.sub-brand {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--text-muted);
+}
+
+.status-bar {
+    display: flex;
+    gap: 25px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.stat-box .label {
+    font-size: 0.65rem;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+}
+
+.stat-box .val {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.val.highlight {
+    color: var(--accent);
+    text-shadow: var(--accent-glow);
+}
+
+.progress-bar {
+    width: 100px;
+    height: 5px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    margin-top: 2px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #10B981;
+    transition: width 0.3s;
+}
+
+.state-badge {
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.live-decision-hud {
+    margin-top: 15px;
+    width: fit-content;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--accent);
+    padding: 10px 15px;
+    border-radius: 6px;
+    pointer-events: auto;
+}
+
+.hud-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+}
+
+.hud-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    color: #FFF;
+}
+
+.controls {
+    position: absolute;
+    right: 20px;
+    top: 120px;
+    width: 320px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(10px);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    pointer-events: auto;
+    bottom: 20px;
+}
+
+h3 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    padding-bottom: 5px;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.metric-card {
+    background: rgba(0,0,0,0.3);
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.05);
+    display: flex;
+    flex-direction: column;
+}
+
+.m-label { font-size: 0.6rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+.m-val { font-size: 0.9rem; font-weight: bold; font-family: 'Orbitron', sans-serif; }
+
+.status-rows {
+    display: flex; flex-direction: column; gap: 5px; font-size: 0.75rem; font-family: 'JetBrains Mono', monospace;
+}
+.row { display: flex; justify-content: space-between; }
+.r-val.safe { color: #10B981; }
+
+.logs-section { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.logs-container {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 5px;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.7rem;
+}
+.log-entry {
+    background: rgba(255,255,255,0.05); padding: 5px; border-left: 2px solid var(--accent);
+}
+
+.actions { display: flex; flex-direction: column; gap: 10px; }
+
+button {
+    background: rgba(0, 240, 255, 0.1);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 10px;
+    border-radius: 6px;
+    font-family: 'Orbitron', sans-serif;
+    cursor: pointer;
+    text-transform: uppercase;
+}
+button:hover { background: var(--accent); color: #000; box-shadow: var(--accent-glow); }
+
+.hud-select {
+    width: 100%;
+    background: rgba(0,0,0,0.5);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #FFF;
+    padding: 8px;
+    border-radius: 4px;
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.slider-group label { font-size: 0.7rem; font-family: 'JetBrains Mono', monospace; color: var(--text-muted); }
+input[type=range] { width: 100%; }
+
+.overlay {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    z-index: 100; pointer-events: auto;
+}
+.overlay.hidden { display: none; }
+.overlay h2 { font-family: 'Orbitron', sans-serif; color: var(--accent); font-size: 2.5rem; text-shadow: var(--accent-glow); }
+.overlay p { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; }
